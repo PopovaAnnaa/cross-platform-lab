@@ -1,0 +1,42 @@
+@page
+@model WorkingSpaces.Pages.BookingModel
+@{
+    ViewData["Title"] = "Book a Space";
+}
+
+<h1>Book a Desk</h1>
+
+<form method="post">
+    <label>Select a date:</label>
+    <input type="date" asp-for="SelectedDate" required />
+    <button type="submit">Check Availability</button>
+</form>
+
+@if (Model.AvailableSpaces != null && Model.AvailableSpaces.Any())
+{
+    <h2>Available Tables</h2>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Room</th>
+            <th>Table</th>
+            <th>Action</th>
+        </tr>
+        @foreach (var space in Model.AvailableSpaces)
+        {
+            <tr>
+                <td>@space.Room</td>
+                <td>@space.TableNumber</td>
+                <td>
+                    <form method="post" asp-page-handler="Book">
+                        <input type="hidden" name="TableId" value="@space.Id" />
+                        <button type="submit">Book</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </table>
+}
+else if (Model.SelectedDate != null)
+{
+    <p>No tables available for @Model.SelectedDate.Value.ToShortDateString()</p>
+}
