@@ -2,60 +2,129 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace WorkingSpaces.Pages
 {
     public class BookingModel : PageModel
     {
-        // In-memory demo data
-        public class Space
+        public static BookingManager Manager = new BookingManager();
+        static BookingModel()
         {
-            public int Id { get; set; }
-            public string Room { get; set; }
-            public int TableNumber { get; set; }
+            Manager.Spaces.AddRange(new List<Space>
+            {
+                new Space { RoomId = 1, NumberOfSeats = 3, AvailableEquipment = Equipment.TV | Equipment.Board },
+                new Space { RoomId = 2, NumberOfSeats = 10, AvailableEquipment = Equipment.Projector | Equipment.Computers },
+                new Space { RoomId = 3, NumberOfSeats = 5, AvailableEquipment = Equipment.Board },
+                new Space { RoomId = 4, NumberOfSeats = 8, AvailableEquipment = Equipment.TV | Equipment.Computers }
+            });
         }
 
-        public static List<Space> AllSpaces = new List<Space>
-        {
-            new Space { Id = 1, Room = "A", TableNumber = 1 },
-            new Space { Id = 2, Room = "A", TableNumber = 2 },
-            new Space { Id = 3, Room = "B", TableNumber = 1 },
-            new Space { Id = 4, Room = "B", TableNumber = 2 }
-        };
 
-        public static List<(DateTime Date, int TableId)> Bookings = new List<(DateTime, int)>();
-
-        [BindProperty]
+            [BindProperty]
+        [DataType(DataType.Date)]
         public DateTime? SelectedDate { get; set; }
 
-        public List<Space> AvailableSpaces { get; set; }
+        [BindProperty]
+        [Required(ErrorMessage = "Start Time is required")]
+        [DataType(DataType.Time)]
+        public TimeSpan? StartTime { get; set; }
 
-        // Handles GET requests
+        [BindProperty]
+        [Required(ErrorMessage = "End Time is required")]
+        [DataType(DataType.Time)]
+        public TimeSpan? EndTime { get; set; }
+
+        [BindProperty]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address")]
+        public required string UserEmail { get; set; }
+
+        [BindProperty]
+        public int SpaceId { get; set; } 
+
+        public required List<Space> AvailableSpaces { get; set; }
+        public required string BookingMessage { get; set; } 
+
+         public required List<Booking> CurrentBookings { get; set; }
+
         public void OnGet()
         {
-            AvailableSpaces = null; // Initially no data
-        }
-
-        // Handles form submission to check availability
-        public void OnPost()
-        {
-            if (SelectedDate == null) return;
-
-            AvailableSpaces = AllSpaces
-                .Where(s => !Bookings.Any(b => b.Date == SelectedDate && b.TableId == s.Id))
+            CurrentBookings = Manager.Bookings
+                .OrderBy(b => b.StartTime)
                 .ToList();
         }
 
-        // Handles booking action
-        public IActionResult OnPostBook(int TableId)
+        public void OnPost()
         {
-            if (SelectedDate != null)
+            if (SelectedDate.HasValue && SelectedDate.Value.Date >= DateTime.Today)
             {
-                Bookings.Add((SelectedDate.Value, TableId));
+                AvailableSpaces = Manager.Spaces;
             }
-            // Redirect to the same page to refresh available spaces
-            return RedirectToPage(new { SelectedDate });
+            else
+            {
+                AvailableSpaces = new List<Space>();
+                if (SelectedDate.HasValue && SelectedDate.Value.Date < DateTime.Today)
+                {
+                    ModelState.AddModelError("SelectedDate", "Date cannot be in the past.");
+                }
+            }
+            CurrentBookings = Manager.Bookings
+                .OrderBy(b => b.StartTime)
+                .ToList();
+        }
+
+        public IActionResult OnPostBook()
+        {
+
+            if (ModelState.IsValid && SelectedDate.HasValue && StartTime.HasValue && EndTime.HasValue)
+            {
+                var space = Manager.Spaces.FirstOrDefault(s => s.RoomId == SpaceId);
+
+                if (space == null)
+                {
+                    BookingMessage = "Error: Selected room not found.";
+                    return Page();
+                }
+
+                var startDate = SelectedDate.Value.Date;
+                var startDateTime = startDate.Add(StartTime.Value);
+                var endDateTime = startDate.Add(EndTime.Value);
+
+                var startOffset = new DateTimeOffset(startDateTime, TimeZoneInfo.Local.GetUtcOffset(startDateTime));
+                var endOffset = new DateTimeOffset(endDateTime, TimeZoneInfo.Local.GetUtcOffset(endDateTime));
+
+                var booking = Manager.CreateBooking(space, UserEmail, startOffset, endOffset);
+
+                if (booking != null)
+                {
+                    BookingMessage = $"Success! Booking created: {booking.ToString()}";
+                }
+                else
+                {
+                    BookingMessage = "Booking failed! The selected time slot overlaps with an existing booking, or the time is invalid (e.g., in the past, after 23:00, or end time before start time, or duration less than 15 minutes).";
+                }
+            }
+            else
+            {
+                BookingMessage = "Validation Error: Please check your input.";
+            }
+
+            if (SelectedDate.HasValue)
+            {
+                 AvailableSpaces = Manager.Spaces;
+            }
+
+            if (SelectedDate.HasValue)
+            {
+                 AvailableSpaces = Manager.Spaces;
+            }
+            CurrentBookings = Manager.Bookings
+                .OrderBy(b => b.StartTime)
+                .ToList();
+
+            return Page();
         }
     }
 }
