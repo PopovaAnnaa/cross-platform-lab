@@ -8,19 +8,19 @@
     "net8.0": []
   },
   "packageFolders": {
-    "/Users/lizokokok/.nuget/packages/": {}
+    "/Users/annapopova/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/lizokokok/Documents/Crossplatform/cross-platform-lab/WorkingSpaces/WorkingSpaces.csproj",
+      "projectUniqueName": "/Users/annapopova/Documents/GitHub/cross-platform-lab/WorkingSpaces/WorkingSpaces.csproj",
       "projectName": "WorkingSpaces",
-      "projectPath": "/Users/lizokokok/Documents/Crossplatform/cross-platform-lab/WorkingSpaces/WorkingSpaces.csproj",
-      "packagesPath": "/Users/lizokokok/.nuget/packages/",
-      "outputPath": "/Users/lizokokok/Documents/Crossplatform/cross-platform-lab/WorkingSpaces/obj/",
+      "projectPath": "/Users/annapopova/Documents/GitHub/cross-platform-lab/WorkingSpaces/WorkingSpaces.csproj",
+      "packagesPath": "/Users/annapopova/.nuget/packages/",
+      "outputPath": "/Users/annapopova/Documents/GitHub/cross-platform-lab/WorkingSpaces/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/lizokokok/.nuget/NuGet/NuGet.Config"
+        "/Users/annapopova/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -67,7 +67,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.402/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
